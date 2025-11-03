@@ -52,7 +52,8 @@ def normalize_text(s):
     return s.strip()
 
 # ====================== BASE ======================
-URL = "https://raw.githubusercontent.com//sas-ecare/calc_gss-app/blob/main/base/Tabela_Performance_v2.xlsx"
+#URL = "https://raw.githubusercontent.com/sas-ecare/calc_gss-app/blob/main/base/Tabela_Performance_v2.xlsx"
+URL = "https://github.com/sas-ecare/calc_gss-app/raw/refs/heads/main/base/Tabela_Performance_v2.xlsx"
 
 
 
@@ -435,6 +436,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             )
             st.plotly_chart(fig_scatter, use_container_width=False)
     
+
 
 
 
