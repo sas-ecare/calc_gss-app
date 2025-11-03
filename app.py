@@ -335,7 +335,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
         legend=dict(x=0.7, y=1.15, orientation="h"),
         bargap=0.2, margin=dict(l=10,r=10,t=60,b=80)
     )
-    st.plotly_chart(fig, use_container_width=False)
+    st.plotly_chart(fig, use_container_width=True)
 
     # Top 80%
     df_top = df_p[df_p["Acumulado %"] <= 80].copy()
@@ -436,6 +436,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             )
             st.plotly_chart(fig_scatter, use_container_width=False)
     
+
 
 
 
