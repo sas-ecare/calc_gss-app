@@ -425,17 +425,18 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             fig_scatter.add_trace(go.Scatter(
                 x=df_lote["Volume Acessos"], y=df_lote["Volume CR Evitado"],
                 mode="markers+text", text=df_lote["Subcanal"],
-                textposition="top center", marker=dict(size=0.2, color="#b31313", opacity=0.7)
+                textposition="top center", marker=dict(size=0.01, color="#b31313", opacity=0.7)
             ))
             fig_scatter.update_layout(
                 title="🔬 Relação entre Volume de Acessos e Volume CR Evitado",
                 xaxis_title="Volume de Acessos",
                 yaxis_title="Volume de CR Evitado",
                 template="plotly_white",
-                height=600
+                height=650
             )
             st.plotly_chart(fig_scatter, use_container_width=True)
     
+
 
 
 
