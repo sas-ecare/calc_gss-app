@@ -404,8 +404,8 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             # --- Correlação de Pearson entre Acessos e CR Evitado ---
             corr = df_lote[["Volume Acessos", "Volume CR Evitado"]].corr(method="pearson").iloc[0, 1]
             interpret = (
-                "forte e positiva 📈" if corr > 0.8 else
-                "moderada 📊" if corr > 0.5 else
+                "forte e positiva 📈" if corr > 0.7 else
+                "moderada 📊" if corr > 0.4 else
                 "fraca 🔹" if corr > 0.2 else
                 "nula ou negativa 🔻"
             )
@@ -424,7 +424,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             fig_scatter = go.Figure()
             fig_scatter.add_trace(go.Scatter(
                 x=df_lote["Volume Acessos"], y=df_lote["Volume CR Evitado"],
-                textfont=dict(size=9),
+                textfont=dict(size=4),
                 mode="markers+text", text=df_lote["Subcanal"],
                 textposition="top center", marker=dict(size=0.001, color="#b31313", opacity=0.7)
             ))
@@ -437,6 +437,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             )
             st.plotly_chart(fig_scatter, use_container_width=True)
     
+
 
 
 
