@@ -434,8 +434,9 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
                 template="plotly_white",
                 height=400
             )
-            st.plotly_chart(fig_scatter, use_container_width=False)
+            st.plotly_chart(fig_scatter, use_container_width=True)
     
+
 
 
 
