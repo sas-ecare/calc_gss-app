@@ -424,6 +424,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             fig_scatter = go.Figure()
             fig_scatter.add_trace(go.Scatter(
                 x=df_lote["Volume Acessos"], y=df_lote["Volume CR Evitado"],
+                textfont=dict(size=9),
                 mode="markers+text", text=df_lote["Subcanal"],
                 textposition="top center", marker=dict(size=0.001, color="#b31313", opacity=0.7)
             ))
@@ -436,6 +437,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             )
             st.plotly_chart(fig_scatter, use_container_width=True)
     
+
 
 
 
