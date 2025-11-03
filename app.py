@@ -363,7 +363,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
 
         colunas_validas = [c for c in colunas_desejadas if c in colunas_disp]
 
-        st.dataframe(df_top[colunas_validas], use_container_width=False)
+        st.dataframe(df_top[colunas_validas], use_container_width=True)
 
     # =================== DOWNLOAD EXCEL ===================
     buffer = io.BytesIO()
@@ -436,6 +436,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             )
             st.plotly_chart(fig_scatter, use_container_width=False)
     
+
 
 
 
