@@ -1,0 +1,10 @@
+streamlit
+pandas
+numpy
+openpyxl
+plotly
+Pillow
+xlsxwriter
+python-dotenv
+networkx
+
