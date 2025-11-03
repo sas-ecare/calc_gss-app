@@ -426,7 +426,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
                 x=df_lote["Volume Acessos"], y=df_lote["Volume CR Evitado"],
                 textfont=dict(size=6),
                 mode="markers+text", text=df_lote["Subcanal"],
-                textposition="top right", marker=dict(size=2, color="#b31313", opacity=0.7)
+                textposition="top right", marker=dict(size=5, color="#b31313", opacity=0.7)
             ))
             fig_scatter.update_layout(
                 title="🔬 Relação entre Volume de Acessos e Volume CR Evitado",
@@ -437,6 +437,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
             )
             st.plotly_chart(fig_scatter, use_container_width=True)
     
+
 
 
 
