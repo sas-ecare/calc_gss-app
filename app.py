@@ -69,10 +69,8 @@ def normalize_text(s):
     return s.strip()
 
 # ====================== DERIVAR SEGMENTO ======================
-def derivar_segmento(subcanal, segmento_existente=None):
-    """Retorna segmento existente se válido, senão deriva do subcanal."""
-    if pd.notna(segmento_existente) and str(segmento_existente).strip() != "":
-        return segmento_existente
+def derivar_segmento(subcanal):
+    """Sempre deriva do subcanal (coluna SEGMENTO pode estar zerada/corrompida)."""
     sub = str(subcanal).lower() if pd.notna(subcanal) else ""
     if any(k in sub for k in ["hfc", "dth", "res.", "residencial", "box tv"]):
         return "Residencial"
@@ -100,12 +98,8 @@ def carregar_dados(uploaded_bytes=None):
     df["SUBCANAL_NORM"] = df["NM_SUBCANAL"].map(normalize_text)
     df["TORRE_NORM"] = df["NM_TORRE"].map(normalize_text)
 
-    # ✅ Garante coluna SEGMENTO mesmo que não exista ou tenha NaN
-    seg_col = df["SEGMENTO"] if "SEGMENTO" in df.columns else pd.Series([None] * len(df))
-    df["SEGMENTO"] = [
-        derivar_segmento(sub, seg)
-        for sub, seg in zip(df["NM_SUBCANAL"], seg_col)
-    ]
+    # ✅ Sempre deriva SEGMENTO do subcanal (ignora coluna que pode estar zerada/corrompida)
+    df["SEGMENTO"] = df["NM_SUBCANAL"].map(derivar_segmento)
     df["SEGMENTO_NORM"] = df["SEGMENTO"].map(normalize_text)
 
     return df
