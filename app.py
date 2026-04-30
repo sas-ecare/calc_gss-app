@@ -1,3 +1,5 @@
+# app_calculadora_ganhos.py - versao corrigida
+
 import io, base64, unicodedata, re
 from pathlib import Path
 import numpy as np
@@ -79,20 +81,17 @@ def derivar_segmento(subcanal, segmento_existente=None):
     return None
 
 # ====================== BASE ======================
-URL = "https://github.com/sas-ecare/calc_gss-app/raw/refs/heads/main/base/Tabela_Performance_v3.xlsx"
+URL = "https://github.com/sas-ecare/calc_gss-app/raw/refs/heads/main/base/Tabela_Performance_v2.xlsx"
 
 @st.cache_data(show_spinner=True)
-def carregar_dados():
+def carregar_dados(uploaded_bytes=None):
     try:
-        df = pd.read_excel(URL, sheet_name="Tabela Performance")
-    except Exception:
-        st.warning("⚠️ Não foi possível carregar do GitHub. Faça upload manual abaixo.")
-        uploaded = st.file_uploader("📄 Envie a planilha Tabela_Performance_v2.xlsx", type=["xlsx"])
-        if uploaded is not None:
-            df = pd.read_excel(uploaded, sheet_name="Tabela Performance")
-            st.success("✅ Base carregada com sucesso via upload manual.")
+        if uploaded_bytes is not None:
+            df = pd.read_excel(io.BytesIO(uploaded_bytes), sheet_name="Tabela Performance")
         else:
-            st.stop()
+            df = pd.read_excel(URL, sheet_name="Tabela Performance")
+    except Exception:
+        return None
 
     df = df[df["TP_META"].astype(str).str.lower().eq("real")].copy()
     df["VOL_KPI"] = pd.to_numeric(df["VOL_KPI"], errors="coerce").fillna(0)
@@ -111,7 +110,17 @@ def carregar_dados():
 
     return df
 
+# ====================== CARREGAMENTO (upload fora do cache) ======================
 df = carregar_dados()
+
+if df is None:
+    st.warning("⚠️ Não foi possível carregar do GitHub. Faça upload manual abaixo.")
+    uploaded = st.file_uploader("📄 Envie a planilha Tabela_Performance_v2.xlsx", type=["xlsx"])
+    if uploaded is not None:
+        df = carregar_dados(uploaded.read())
+        st.success("✅ Base carregada com sucesso via upload manual.")
+    if df is None:
+        st.stop()
 
 # ====================== HELPERS ======================
 def fmt_int(x):
