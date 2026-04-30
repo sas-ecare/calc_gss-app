@@ -15,86 +15,20 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-# Força tema light completo — funciona independente da config dark/light do usuário
+# Tema light - só forca background, sem sobrescrever cores de texto
 st.markdown("""
     <style>
-        /* ── Fundos gerais ── */
         html, body,
         [data-testid="stAppViewContainer"],
         [data-testid="stApp"],
         [data-testid="stHeader"],
         [data-testid="stToolbar"],
-        .stApp,
-        .main .block-container {
+        section[data-testid="stSidebar"] > div,
+        .stApp {
             background-color: #ffffff !important;
-            color: #1a1a1a !important;
         }
-        [data-testid="stSidebar"],
-        section[data-testid="stSidebar"] > div {
+        [data-testid="stSidebar"] {
             background-color: #f5f5f5 !important;
-            color: #1a1a1a !important;
-        }
-
-        /* ── Texto geral ── */
-        p, span, label, div, h1, h2, h3, h4, li, caption,
-        [data-testid="stMarkdownContainer"] * {
-            color: #1a1a1a !important;
-        }
-
-        /* ── Títulos com cor vermelha explícita não devem herdar o override ── */
-        h1[style], h2[style], h3[style], p[style], div[style] {
-            color: unset;   /* deixa o style inline prevalecer */
-        }
-
-        /* ── Inputs, selectbox, number_input ── */
-        [data-testid="stSelectbox"] > div,
-        [data-testid="stNumberInput"] > div,
-        .stSelectbox label,
-        .stNumberInput label {
-            background-color: #ffffff !important;
-            color: #1a1a1a !important;
-        }
-        [data-baseweb="select"] * {
-            background-color: #ffffff !important;
-            color: #1a1a1a !important;
-        }
-
-        /* ── Expander ── */
-        [data-testid="stExpander"] {
-            background-color: #fafafa !important;
-            border: 1px solid #e0e0e0 !important;
-        }
-        [data-testid="stExpander"] summary,
-        [data-testid="stExpander"] summary span {
-            color: #1a1a1a !important;
-        }
-
-        /* ── Tabelas / dataframes ── */
-        [data-testid="stDataFrame"] *,
-        .stDataFrame * {
-            background-color: #ffffff !important;
-            color: #1a1a1a !important;
-        }
-
-        /* ── Caption / info ── */
-        [data-testid="stCaptionContainer"],
-        [data-testid="stCaptionContainer"] * {
-            color: #555555 !important;
-        }
-
-        /* ── Botões ── */
-        .stButton > button {
-            background-color: #8B0000 !important;
-            color: #ffffff !important;
-            border: none !important;
-        }
-        .stButton > button:hover {
-            background-color: #6a0000 !important;
-        }
-
-        /* ── Download button ── */
-        [data-testid="stDownloadButton"] > button {
-            color: #1a1a1a !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -299,22 +233,22 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
         <div style="width:460px; padding:18px 24px; margin:12px 0;
         background:darkred;
         border-radius:16px; box-shadow:0 4px 10px rgba(139,0,0,.25);
-        color:#ffffff; display:flex; justify-content:space-between; align-items:center;">
-            <div style="font-weight:800; font-size:18px; color:#ffffff;">{title}</div>
-            <div style="font-weight:900; font-size:20px; background:#ffffff; color:#8B0000;
+        color:#fff; display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:800; font-size:18px;">{title}</div>
+            <div style="font-weight:900; font-size:20px; background:#fff; color:#8B0000;
                         padding:6px 14px; border-radius:10px; min-width:90px;
-                        text-align:center; color:#8B0000;">{value}</div>
+                        text-align:center;">{value}</div>
         </div>
     """
     card_red = """
         <div style="width:460px; padding:18px 24px; margin:12px 0;
         background:linear-gradient(45deg,#b31313 0%,#d01f1f 70%,#e23a3a 100%);
         border-radius:16px; box-shadow:0 4px 10px rgba(139,0,0,.25);
-        color:#ffffff; display:flex; justify-content:space-between; align-items:center;">
-            <div style="font-weight:800; font-size:18px; color:#ffffff;">{title}</div>
-            <div style="font-weight:900; font-size:20px; background:#ffffff; color:#b31313;
+        color:#fff; display:flex; justify-content:space-between; align-items:center;">
+            <div style="font-weight:800; font-size:18px;">{title}</div>
+            <div style="font-weight:900; font-size:20px; background:#fff; color:#b31313;
                         padding:6px 14px; border-radius:10px; min-width:90px;
-                        text-align:center; color:#b31313;">{value}</div>
+                        text-align:center;">{value}</div>
         </div>
     """
 
@@ -406,17 +340,15 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
         marker=dict(color="royalblue"), yaxis="y2"
     ))
     fig.update_layout(
-        title=dict(text="📈 Pareto - Volume de CR Evitado", font=dict(color="#1a1a1a")),
-        xaxis=dict(title="Subcanais", color="#1a1a1a", tickfont=dict(color="#1a1a1a")),
-        yaxis=dict(title="Volume CR Evitado", color="#1a1a1a", tickfont=dict(color="#1a1a1a")),
-        yaxis2=dict(title="Acumulado %", overlaying="y", side="right", range=[0, 100],
-                    color="#1a1a1a", tickfont=dict(color="#1a1a1a")),
-        legend=dict(x=0.7, y=1.15, orientation="h", font=dict(color="#1a1a1a")),
+        title="📈 Pareto - Volume de CR Evitado",
+        xaxis=dict(title="Subcanais"),
+        yaxis=dict(title="Volume CR Evitado"),
+        yaxis2=dict(title="Acumulado %", overlaying="y", side="right", range=[0, 100]),
+        legend=dict(x=0.7, y=1.15, orientation="h"),
         bargap=0.2,
         margin=dict(l=10, r=10, t=60, b=80),
         plot_bgcolor="#ffffff",
         paper_bgcolor="#ffffff",
-        font=dict(color="#1a1a1a"),
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -499,13 +431,10 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
                 marker=dict(size=5, color="#b31313", opacity=0.7),
             ))
             fig_scatter.update_layout(
-                title=dict(text="🔬 Relação entre Volume de Acessos e Volume CR Evitado",
-                           font=dict(color="#1a1a1a")),
+                title="🔬 Relação entre Volume de Acessos e Volume CR Evitado",
                 xaxis_title="Volume de Acessos",
                 yaxis_title="Volume de CR Evitado",
-                plot_bgcolor="#ffffff",
-                paper_bgcolor="#ffffff",
-                font=dict(color="#1a1a1a"),
+                template="plotly_white",
                 height=650,
             )
             st.plotly_chart(fig_scatter, use_container_width=True)
