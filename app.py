@@ -79,7 +79,7 @@ def derivar_segmento(subcanal):
     return None
 
 # ====================== BASE ======================
-URL = "https://github.com/sas-ecare/calc_gss-app/raw/refs/heads/main/base/Tabela_Performance_v2.xlsx"
+URL = "https://github.com/sas-ecare/calc_gss-app/raw/refs/heads/main/base/Tabela_Performance_v2_atu.xlsx"
 
 @st.cache_data(show_spinner=True)
 def carregar_dados(uploaded_bytes=None):
