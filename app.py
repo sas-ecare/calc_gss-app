@@ -111,7 +111,7 @@ def carregar_dados(uploaded_bytes=None):
 
 # Sidebar com controle de cache
 with st.sidebar:
-    st.markdown("### ⚙️ Base de Dados")
+    st.markdown("<h3 style='color:#8B0000;'>⚙️ Base de Dados</h3>", unsafe_allow_html=True)
     if st.button("🔄 Atualizar Base"):
         st.cache_data.clear()
         st.rerun()
@@ -184,7 +184,7 @@ def tx_uu_por_cpf(vol_71, vol_41):
         return DEFAULT_TX_UU_CPF
 
 # ====================== FILTROS ======================
-st.markdown("## 🔎 Filtros de Cenário")
+st.markdown("<h2 style='color:#8B0000;'>🔎 Filtros de Cenário</h2>", unsafe_allow_html=True)
 c1, c2, c3 = st.columns(3)
 
 segmentos = sorted(df["SEGMENTO"].dropna().unique().tolist())
@@ -227,7 +227,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
 
     # =================== CARDS ===================
     st.markdown("---")
-    st.markdown("## 📊 Resultados Gerais")
+    st.markdown("<h2 style='color:#8B0000;'>📊 Resultados Gerais</h2>", unsafe_allow_html=True)
 
     card_darkred = """
         <div style="width:460px; padding:18px 24px; margin:12px 0;
@@ -287,7 +287,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
 
     # =================== SIMULAÇÃO TODOS OS SUBCANAIS ===================
     st.markdown("---")
-    st.markdown("## 📄 Simulação - Todos os Subcanais")
+    st.markdown("<h2 style='color:#8B0000;'>📄 Simulação - Todos os Subcanais</h2>", unsafe_allow_html=True)
     resultados = []
     for sub in sorted(df.loc[df["SEGMENTO"] == segmento, "NM_SUBCANAL"].dropna().unique()):
         df_i = df[
@@ -322,7 +322,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
     st.dataframe(df_lote, use_container_width=False)
 
     # =================== PARETO ===================
-    st.markdown("## 🔎 Análise de Pareto - Potencial de Ganho")
+    st.markdown("<h2 style='color:#8B0000;'>🔎 Análise de Pareto - Potencial de Ganho</h2>", unsafe_allow_html=True)
     df_p  = df_lote.sort_values("Volume CR Evitado", ascending=False).reset_index(drop=True)
     tot   = df_p["Volume CR Evitado"].sum()
     df_p["Acumulado"]   = df_p["Volume CR Evitado"].cumsum()
@@ -355,7 +355,7 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
     # =================== INSIGHTS ===================
     df_top = df_p[df_p["Acumulado %"] <= 80].copy()
 
-    st.markdown("## 🧠 Insights")
+    st.markdown("<h2 style='color:#8B0000;'>🧠 Insights</h2>", unsafe_allow_html=True)
     st.markdown("**🏆 Subcanais Prioritários (Top 80%)**")
 
     if df_top.empty:
@@ -387,10 +387,10 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
     # =================== ANÁLISE ESTATÍSTICA ===================
     with st.expander("🔍 Estatística & Ciência de Dados", expanded=False):
         st.markdown("---")
-        st.markdown("## 📊🔬 Análise Estatística & Ciência de Dados")
+        st.markdown("<h2 style='color:#8B0000;'>📊🔬 Análise Estatística & Ciência de Dados</h2>", unsafe_allow_html=True)
 
         if not df_lote.empty:
-            st.markdown("### 📈 Estatísticas Descritivas por Indicador")
+            st.markdown("<h3 style='color:#8B0000;'>📈 Estatísticas Descritivas por Indicador</h3>", unsafe_allow_html=True)
             st.markdown("""
             <p style='font-size:15px; color:#444; text-align:justify;'>
             Esta tabela resume os principais indicadores estatísticos de cada métrica simulada.
