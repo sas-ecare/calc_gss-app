@@ -15,7 +15,7 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-# Força tema light via CSS (garante light mesmo que usuário tenha dark no sistema)
+# Tema light - só forca background, sem sobrescrever cores de texto
 st.markdown("""
     <style>
         html, body,
@@ -24,25 +24,15 @@ st.markdown("""
         [data-testid="stHeader"],
         [data-testid="stToolbar"],
         section[data-testid="stSidebar"] > div,
-        .stApp { 
+        .stApp {
             background-color: #ffffff !important;
-            color: #111111 !important;
         }
         [data-testid="stSidebar"] {
             background-color: #f5f5f5 !important;
         }
-        .stSelectbox label, .stNumberInput label,
-        .stMarkdown, .stCaption, .stText,
-        h1, h2, h3, h4, p, span, div {
-            color: #111111 !important;
-        }
-        /* Remove qualquer estilo dark do Streamlit */
-        [data-theme="dark"] {
-            --background-color: #ffffff !important;
-            --text-color: #111111 !important;
-        }
     </style>
 """, unsafe_allow_html=True)
+
 
 # ====================== LOGO ======================
 def _find_asset_bytes(name_candidates):
