@@ -384,19 +384,299 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
         mime="application/vnd.ms-excel",
     )
 
-    # =================== ANÁLISE ESTATÍSTICA ===================
-    with st.expander("🔍 Estatística & Ciência de Dados", expanded=False):
-        st.markdown("---")
-        st.markdown("<h2 style='color:#8B0000;'>📊🔬 Análise Estatística & Ciência de Dados</h2>", unsafe_allow_html=True)
+    # =================== ANÁLISE EXECUTIVA ===================
+    st.markdown("---")
+    st.markdown("<h2 style='color:#8B0000;'>📊 Visão Executiva</h2>", unsafe_allow_html=True)
 
+    # ── 1. KPIs consolidados do mês com variação MoM ──────────────────────────
+    with st.expander("📌 KPIs Consolidados do Mês + Variação vs Mês Anterior", expanded=False):
+        mes_atual  = anomes_escolhido
+        ano_a      = int(str(mes_atual)[:4])
+        mes_a      = int(str(mes_atual)[4:])
+        mes_ant_n  = mes_a - 1 if mes_a > 1 else 12
+        ano_ant_n  = ano_a if mes_a > 1 else ano_a - 1
+        mes_ant    = int(f"{ano_ant_n}{mes_ant_n:02d}")
+
+        def vol_segmento(anomes_ref, kpi_termos):
+            df_ref = df[
+                (df["SEGMENTO"] == segmento) &
+                (df["ANOMES"] == anomes_ref)
+            ]
+            mask = False
+            for t in kpi_termos:
+                mask |= df_ref["NM_KPI_NORM"].str.contains(t, case=False, na=False)
+            return float(df_ref.loc[mask, "VOL_KPI"].sum())
+
+        def delta_pct(atual, anterior):
+            if anterior <= 0:
+                return None
+            return (atual - anterior) / anterior * 100
+
+        def fmt_delta(pct):
+            if pct is None:
+                return "—"
+            seta = "▲" if pct >= 0 else "▼"
+            cor  = "green" if pct >= 0 else "red"
+            return f"<span style='color:{cor};font-weight:700'>{seta} {abs(pct):.1f}%</span>"
+
+        kpis_def = {
+            "Transações":        ["transacao", "transa"],
+            "Acessos":           ["acesso"],
+            "Usuários Únicos":   ["usuario unico", "cpf"],
+        }
+
+        st.markdown(f"**Segmento:** {segmento} &nbsp;|&nbsp; **Mês:** {mes_fmt[mes_a]}/{ano_a} vs {mes_fmt[mes_ant_n]}/{ano_ant_n}")
+        st.markdown("---")
+
+        cols_kpi = st.columns(len(kpis_def))
+        for col, (nome, termos) in zip(cols_kpi, kpis_def.items()):
+            v_atual = vol_segmento(mes_atual, termos)
+            v_ant   = vol_segmento(mes_ant,   termos)
+            pct     = delta_pct(v_atual, v_ant)
+            col.markdown(f"""
+            <div style='text-align:center;padding:16px;background:#fafafa;
+                        border-radius:12px;border:1px solid #e0e0e0;'>
+                <div style='font-size:13px;color:#666;font-weight:600;'>{nome}</div>
+                <div style='font-size:26px;font-weight:900;color:#8B0000;'>{fmt_int(v_atual)}</div>
+                <div style='font-size:14px;margin-top:4px;'>{fmt_delta(pct)}</div>
+                <div style='font-size:11px;color:#aaa;'>vs mês anterior</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # ── 2. Tendência dos últimos 6 meses ──────────────────────────────────────
+    with st.expander("📈 Tendência — Últimos 6 Meses (Segmento)", expanded=False):
+        meses_disp = sorted(df["ANOMES"].unique())
+        idx_atual  = meses_disp.index(anomes_escolhido) if anomes_escolhido in meses_disp else len(meses_disp) - 1
+        janela     = meses_disp[max(0, idx_atual - 5): idx_atual + 1]
+
+        kpi_tend_opcoes = {
+            "Transações":      ["transacao", "transa"],
+            "Acessos":         ["acesso"],
+            "Usuários Únicos": ["usuario unico", "cpf"],
+        }
+        kpi_tend_label = st.selectbox("KPI:", list(kpi_tend_opcoes.keys()), key="kpi_tend")
+        kpi_tend_termos = kpi_tend_opcoes[kpi_tend_label]
+
+        # Agrega por subcanal × mês na janela
+        df_tend = df[
+            (df["SEGMENTO"] == segmento) &
+            (df["ANOMES"].isin(janela))
+        ].copy()
+        mask_tend = False
+        for t in kpi_tend_termos:
+            mask_tend |= df_tend["NM_KPI_NORM"].str.contains(t, case=False, na=False)
+        df_tend = df_tend[mask_tend].groupby(["NM_SUBCANAL", "ANOMES"])["VOL_KPI"].sum().reset_index()
+        df_tend["label"] = df_tend["ANOMES"].apply(lambda a: f"{mes_fmt[int(str(a)[4:])]}/{str(a)[:4]}")
+
+        # Top subcanais por volume médio na janela
+        top_subs = (
+            df_tend.groupby("NM_SUBCANAL")["VOL_KPI"].mean()
+            .sort_values(ascending=False).head(6).index.tolist()
+        )
+
+        CORES = ["#8B0000","#e05c00","#1a6fab","#2a9d2a","#9b27af","#c89b00"]
+        fig_tend = go.Figure()
+        for i, sub_t in enumerate(top_subs):
+            d = df_tend[df_tend["NM_SUBCANAL"] == sub_t].sort_values("ANOMES")
+            d = d[d["VOL_KPI"] > 0]
+            if d.empty:
+                continue
+            fig_tend.add_trace(go.Scatter(
+                x=d["label"], y=d["VOL_KPI"],
+                mode="lines+markers", name=sub_t,
+                line=dict(color=CORES[i % len(CORES)], width=2),
+                marker=dict(size=6),
+            ))
+        fig_tend.update_layout(
+            title=f"{kpi_tend_label} — Top subcanais ({segmento})",
+            xaxis_title="Mês", yaxis_title=kpi_tend_label,
+            plot_bgcolor="#ffffff", paper_bgcolor="#ffffff",
+            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            height=420,
+        )
+        st.plotly_chart(fig_tend, use_container_width=True)
+
+        # Tabela variação MoM do subcanal selecionado
+        df_sub_tend = df_tend[df_tend["NM_SUBCANAL"] == subcanal].sort_values("ANOMES")
+        df_sub_tend = df_sub_tend[df_sub_tend["VOL_KPI"] > 0].copy()
+        if len(df_sub_tend) >= 2:
+            df_sub_tend["MoM (%)"] = df_sub_tend["VOL_KPI"].pct_change().mul(100).round(1)
+            st.markdown(f"**Variação mês a mês — {subcanal}**")
+            st.dataframe(
+                df_sub_tend[["label", "VOL_KPI", "MoM (%)"]].rename(columns={"label": "Mês", "VOL_KPI": kpi_tend_label}),
+                use_container_width=False,
+            )
+
+    # ── 3. Projeção próximos 3 meses ──────────────────────────────────────────
+    with st.expander("🔮 Projeção — Próximos 3 Meses", expanded=False):
+        st.markdown("""
+        Projeção via **média ponderada exponencial** com detecção de tendência.
+        Subcanais com menos de 3 meses de dados reais não são projetados.
+        """)
+
+        def forecast_ewm(df, segmento, subcanal, n=3):
+            df_ts = df[
+                (df["SEGMENTO"] == segmento) &
+                (df["NM_SUBCANAL"] == subcanal)
+            ].copy()
+            mask = False
+            for t in ["transacao", "transa"]:
+                mask |= df_ts["NM_KPI_NORM"].str.contains(t, case=False, na=False)
+            df_ts = df_ts[mask].groupby("ANOMES")["VOL_KPI"].sum().reset_index()
+            df_ts = df_ts[df_ts["VOL_KPI"] > 0].sort_values("ANOMES")
+            if len(df_ts) < 3:
+                return [], []
+
+            hist   = df_ts["VOL_KPI"].values.astype(float)
+            pesos  = np.exp(np.linspace(0, 1, min(6, len(hist))))
+            pesos /= pesos.sum()
+            base   = float(np.dot(pesos, hist[-len(pesos):]))
+            diffs  = np.diff(hist[-7:])
+            tend   = float(np.mean(diffs / (hist[-len(diffs)-1:-1] + 1e-9))) if len(diffs) else 0.0
+            tend   = np.clip(tend, -0.10, 0.10)
+
+            ultimo = int(df_ts["ANOMES"].max())
+            ano, mes = int(str(ultimo)[:4]), int(str(ultimo)[4:])
+            labels, vals, vol = [], [], base
+            for _ in range(n):
+                mes += 1
+                if mes > 12:
+                    mes, ano = 1, ano + 1
+                vol = vol * (1 + tend)
+                labels.append(f"{mes_fmt[mes]}/{ano}")
+                vals.append(max(vol, 0))
+
+            hist_labels = df_ts["ANOMES"].apply(
+                lambda a: f"{mes_fmt[int(str(a)[4:])]}/{str(a)[:4]}"
+            ).tolist()
+            return (hist_labels, df_ts["VOL_KPI"].tolist()), (labels, vals)
+
+        hist_data, prev_data = forecast_ewm(df, segmento, subcanal)
+
+        if not prev_data or not prev_data[0]:
+            st.info(f"Dados insuficientes para projetar '{subcanal}'.")
+        else:
+            fig_fc = go.Figure()
+            fig_fc.add_trace(go.Scatter(
+                x=hist_data[0], y=hist_data[1],
+                mode="lines+markers", name="Histórico Real",
+                line=dict(color="#8B0000", width=2), marker=dict(size=6),
+            ))
+            # conecta última observação à primeira projeção
+            x_link = [hist_data[0][-1]] + prev_data[0]
+            y_link = [hist_data[1][-1]] + prev_data[1]
+            fig_fc.add_trace(go.Scatter(
+                x=x_link, y=y_link,
+                mode="lines+markers", name="Projeção",
+                line=dict(color="#e27d00", width=2, dash="dot"),
+                marker=dict(size=8, symbol="diamond", color="#e27d00"),
+            ))
+            fig_fc.update_layout(
+                title=f"Histórico + Projeção de Transações — {subcanal}",
+                xaxis_title="Mês", yaxis_title="Transações",
+                plot_bgcolor="#ffffff", paper_bgcolor="#ffffff",
+                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+                height=400,
+            )
+            st.plotly_chart(fig_fc, use_container_width=True)
+
+            df_prev = pd.DataFrame({"Mês": prev_data[0], "Transações Projetadas": [int(v) for v in prev_data[1]]})
+            st.dataframe(df_prev, use_container_width=False)
+
+    # ── 4. Ranking de eficiência ───────────────────────────────────────────────
+    with st.expander("🏅 Ranking de Eficiência por Subcanal", expanded=False):
+        st.markdown("""
+        Score **0–100** combinando CR Evitado (50%), % Retido (30%) e Taxa Transação/Acesso (20%).
+        Prioriza quem entrega mais impacto com menor esforço — não apenas volume absoluto.
+        """)
+
+        def minmax(s):
+            mn, mx = s.min(), s.max()
+            return pd.Series([50.0] * len(s), index=s.index) if mx == mn else (s - mn) / (mx - mn) * 100
+
+        df_ef = df_lote.copy()
+        df_ef["Score_CR"]     = minmax(df_ef["Volume CR Evitado"].astype(float))
+        df_ef["Score_Retido"] = minmax(df_ef["% Retido"].astype(float))
+        df_ef["Score_TxAcc"]  = minmax(1 / (df_ef["Tx Trans/Acessos"].astype(float) + 0.01))
+        df_ef["Eficiência"]   = (
+            0.5 * df_ef["Score_CR"] +
+            0.3 * df_ef["Score_Retido"] +
+            0.2 * df_ef["Score_TxAcc"]
+        ).round(1)
+
+        df_ef = df_ef.sort_values("Eficiência", ascending=False).reset_index(drop=True)
+        df_ef.index += 1
+
+        n_subs = len(df_ef)
+        cores_ef = [
+            f"hsl({int(0 + 120 * i / max(n_subs - 1, 1))},70%,40%)"
+            for i in range(n_subs)
+        ][::-1]  # vermelho = maior score
+
+        fig_ef = go.Figure(go.Bar(
+            x=df_ef["Subcanal"], y=df_ef["Eficiência"],
+            marker_color=cores_ef,
+            text=df_ef["Eficiência"].astype(str),
+            textposition="outside",
+        ))
+        fig_ef.update_layout(
+            title="🏅 Ranking de Eficiência (0–100)",
+            xaxis_title="Subcanal", yaxis_title="Score",
+            yaxis_range=[0, 115],
+            plot_bgcolor="#ffffff", paper_bgcolor="#ffffff",
+            height=420,
+        )
+        st.plotly_chart(fig_ef, use_container_width=True)
+        st.dataframe(
+            df_ef[["Subcanal", "Tribo", "Volume CR Evitado", "% Retido", "Tx Trans/Acessos", "Eficiência"]],
+            use_container_width=False,
+        )
+
+    # ── 5. Alertas executivos ─────────────────────────────────────────────────
+    with st.expander("⚠️ Alertas — Queda MoM e Outliers", expanded=False):
+        st.markdown("Subcanais com **queda acima de 10% vs mês anterior** ou **volume atípico (Z-score > 2)**.")
+
+        # Queda MoM por subcanal no KPI transações
+        alertas = []
+        for sub_a in sorted(df.loc[df["SEGMENTO"] == segmento, "NM_SUBCANAL"].dropna().unique()):
+            v_at, _, _ = get_volumes(df, segmento, sub_a, mes_atual)
+            v_an, _, _ = get_volumes(df, segmento, sub_a, mes_ant)
+            if v_an > 0 and v_at > 0:
+                queda = (v_at - v_an) / v_an * 100
+                if queda <= -10:
+                    alertas.append({"Subcanal": sub_a, "Mês Atual": int(v_at), "Mês Anterior": int(v_an), "Variação (%)": round(queda, 1)})
+
+        if alertas:
+            st.warning(f"⚠️ {len(alertas)} subcanal(is) com queda ≥ 10% nas transações:")
+            st.dataframe(pd.DataFrame(alertas).sort_values("Variação (%)"), use_container_width=False)
+        else:
+            st.success("✅ Nenhum subcanal com queda ≥ 10% nas transações.")
+
+        st.markdown("---")
+
+        # Outliers por Z-score no CR Evitado
+        vals  = df_lote["Volume CR Evitado"].astype(float)
+        media = vals.mean()
+        std   = vals.std()
+        if std > 0:
+            df_z = df_lote.copy()
+            df_z["Z-score"] = ((vals - media) / std).round(2)
+            outliers_z = df_z[df_z["Z-score"].abs() > 2].sort_values("Z-score", key=abs, ascending=False)
+            if not outliers_z.empty:
+                st.warning(f"⚠️ {len(outliers_z)} subcanal(is) com volume de CR Evitado atípico:")
+                st.dataframe(outliers_z[["Subcanal", "Volume CR Evitado", "Z-score"]], use_container_width=False)
+            else:
+                st.success("✅ Nenhum outlier detectado no Volume CR Evitado.")
+
+    # ── 6. Estatística descritiva & correlação (original preservado) ───────────
+    with st.expander("🔍 Estatística Descritiva & Correlação", expanded=False):
         if not df_lote.empty:
             st.markdown("<h3 style='color:#8B0000;'>📈 Estatísticas Descritivas por Indicador</h3>", unsafe_allow_html=True)
             st.markdown("""
             <p style='font-size:15px; color:#444; text-align:justify;'>
-            Esta tabela resume os principais indicadores estatísticos de cada métrica simulada.
             <b>Média</b> e <b>Mediana</b> mostram o comportamento central;
-            <b>Desvio Padrão</b> e <b>Coeficiente de Variação (CV%)</b> indicam a dispersão dos dados.
-            Um CV acima de <b>30%</b> sugere alta variabilidade entre os subcanais.
+            <b>Desvio Padrão</b> e <b>CV%</b> indicam a dispersão.
+            CV acima de <b>30%</b> sugere alta variabilidade entre os subcanais.
             </p>
             """, unsafe_allow_html=True)
 
@@ -411,12 +691,10 @@ if st.button("🚀 Calcular Ganhos Potenciais"):
                 "fraca 🔹"            if corr > 0.2 else
                 "nula ou negativa 🔻"
             )
-
             st.markdown(f"""
             ### 🔗 Correlação de Pearson (Acessos × CR Evitado)
             <p style='font-size:15px; color:#444; text-align:justify;'>
-            A <b>Correlação de Pearson</b> mede a força e a direção da relação linear entre duas variáveis numéricas.
-            No cenário atual, a correlação é <b>{corr:.2f}</b> → relação {interpret}.
+            Correlação de <b>{corr:.2f}</b> → relação {interpret}.
             </p>
             """, unsafe_allow_html=True)
 
