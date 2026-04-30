@@ -1,5 +1,3 @@
-// app_calculadora_ganhos.py — versão corrigida
-
 import io, base64, unicodedata, re
 from pathlib import Path
 import numpy as np
