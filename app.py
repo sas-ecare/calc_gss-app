@@ -15,18 +15,31 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-# Força tema light via CSS
+# Força tema light via CSS (garante light mesmo que usuário tenha dark no sistema)
 st.markdown("""
     <style>
-        html, body, [data-testid="stAppViewContainer"], [data-testid="stApp"] {
+        html, body,
+        [data-testid="stAppViewContainer"],
+        [data-testid="stApp"],
+        [data-testid="stHeader"],
+        [data-testid="stToolbar"],
+        section[data-testid="stSidebar"] > div,
+        .stApp { 
             background-color: #ffffff !important;
             color: #111111 !important;
         }
         [data-testid="stSidebar"] {
             background-color: #f5f5f5 !important;
         }
-        .stSelectbox label, .stNumberInput label, .stMarkdown, .stCaption {
+        .stSelectbox label, .stNumberInput label,
+        .stMarkdown, .stCaption, .stText,
+        h1, h2, h3, h4, p, span, div {
             color: #111111 !important;
+        }
+        /* Remove qualquer estilo dark do Streamlit */
+        [data-theme="dark"] {
+            --background-color: #ffffff !important;
+            --text-color: #111111 !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -79,7 +92,7 @@ def derivar_segmento(subcanal):
     return None
 
 # ====================== BASE ======================
-URL = "https://github.com/sas-ecare/calc_gss-app/raw/refs/heads/main/base/Tabela_Performance_v2_atu.xlsx"
+URL = "https://github.com/sas-ecare/calc_gss-app/raw/refs/heads/main/base/Tabela_Performance_v2.xlsx"
 
 @st.cache_data(show_spinner=True)
 def carregar_dados(uploaded_bytes=None):
@@ -105,16 +118,30 @@ def carregar_dados(uploaded_bytes=None):
     return df
 
 # ====================== CARREGAMENTO (upload fora do cache) ======================
+
+# Sidebar com controle de cache
+with st.sidebar:
+    st.markdown("### ⚙️ Base de Dados")
+    if st.button("🔄 Atualizar Base"):
+        st.cache_data.clear()
+        st.rerun()
+
 df = carregar_dados()
 
 if df is None:
     st.warning("⚠️ Não foi possível carregar do GitHub. Faça upload manual abaixo.")
     uploaded = st.file_uploader("📄 Envie a planilha Tabela_Performance_v2.xlsx", type=["xlsx"])
     if uploaded is not None:
+        st.cache_data.clear()
         df = carregar_dados(uploaded.read())
         st.success("✅ Base carregada com sucesso via upload manual.")
     if df is None:
         st.stop()
+
+mes_fmt = {1:"Jan",2:"Fev",3:"Mar",4:"Abr",5:"Mai",6:"Jun",7:"Jul",8:"Ago",9:"Set",10:"Out",11:"Nov",12:"Dez"}
+ultimo_mes = df["ANOMES"].max()
+with st.sidebar:
+    st.caption(f"📅 Base até: **{mes_fmt[int(str(ultimo_mes)[4:])]} / {str(ultimo_mes)[:4]}**")
 
 # ====================== HELPERS ======================
 def fmt_int(x):
